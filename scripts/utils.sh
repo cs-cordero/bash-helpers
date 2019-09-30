@@ -9,10 +9,9 @@ function capture_stdout_and_stderr_if_successful {
     COMMAND=$*
     printf "Running %s ... " "${COMMAND}"
 
-    OUTPUT=$($COMMAND 2>&1)
-    if [[ ! $? ]]; then
-        export AT_LEAST_ONE_ERROR=1
-        printf "%bFailed%b\n" "${RED}" "${GREEN}"
+    if ! OUTPUT=$($COMMAND 2>&1); then
+        AT_LEAST_ONE_ERROR=1
+        printf "%bFailed%b\n" "${RED}" "${RESET}"
         printf "%s\n\n" "${OUTPUT}"
     else
         printf "%bSuccess!%b\n" "${GREEN}" "${RESET}"
@@ -22,8 +21,10 @@ function capture_stdout_and_stderr_if_successful {
 
 function store_if_at_least_one_error {
     set +e
-    "$@"
-    [[ $? ]] && export AT_LEAST_ONE_ERROR=1
+    if ! "$@"; then
+        # shellcheck disable=SC2034
+        AT_LEAST_ONE_ERROR=1
+    fi
     set -e
 }
 
